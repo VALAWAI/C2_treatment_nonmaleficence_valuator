@@ -1,0 +1,18 @@
+{
+	"age_range_weight": 0.1,
+	"ccd_weight": 0.2,
+	"maca_weight": 0.3,
+	"expected_survival_weight": 0.4,
+	"frail_VIG_weight": 0.5,
+	"clinical_risk_group_weight": 0.6,
+	"has_social_support_weight": 0.7,
+	"independence_at_admission_weight": 0.8,
+	"independence_instrumental_activities_weight": 0.9,
+	"has_advance_directives_weight": 0.11,
+	"is_competent_weight": 0.12,
+	"has_been_informed_weight": 0.13,
+	"is_coerced_weight": 0.14,
+	"has_cognitive_impairment_weight": 0.15,
+	"has_emocional_pain_weight": 0.16,
+	"discomfort_degree_weight": 0.17
+}

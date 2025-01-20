@@ -1,0 +1,46 @@
+{
+	"id": "treatment_1",
+	"patient_id": "patient_1",
+	"created_time": 1736865373,
+	"before_status": {
+		"age_range": "AGE_BETWEEN_80_AND_89",
+		"ccd": false,
+		"maca": true,
+		"expected_survival": "LESS_THAN_12_MONTHS",
+		"frail_VIG": "HIGH",
+		"clinical_risk_group": "ILLNESS_MANAGEMENT",
+		"has_social_support": false,
+		"independence_at_admission": "SEVERE",
+		"independence_instrumental_activities": 6,
+		"has_advance_directives": true,
+		"is_competent": true,
+		"has_been_informed": false,
+		"is_coerced": true,
+		"has_cognitive_impairment": "MILD_MODERATE",
+		"has_emocional_pain": false,
+		"discomfort_degree": "LOW",
+		"nit_level": "TWO_A"
+	},
+	"actions": [
+		"MEDIUM_CLINICAL_TRIAL"
+	],
+	"expected_status": {
+		"age_range": "AGE_BETWEEN_80_AND_89",
+		"ccd": true,
+		"maca": false,
+		"expected_survival": "MORE_THAN_12_MONTHS",
+		"frail_VIG": "LOW",
+		"clinical_risk_group": "ILLNESS_MANAGEMENT",
+		"has_social_support": false,
+		"independence_at_admission": "MILD",
+		"independence_instrumental_activities": 3,
+		"has_advance_directives": true,
+		"is_competent": true,
+		"has_been_informed": false,
+		"is_coerced": true,
+		"has_cognitive_impairment": "MILD_MODERATE",
+		"has_emocional_pain": true,
+		"discomfort_degree": "MEDIUM",
+		"nit_level": "ONE"
+	}
+}
