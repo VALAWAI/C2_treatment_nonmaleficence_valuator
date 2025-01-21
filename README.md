@@ -8,7 +8,7 @@ a patient follows the nonmaleficence_value.
  - Type: C2
  - Name: Treament nonmaleficence valuator
  - Version: 1.0.1 (January 21, 2025)
- - API: [1.0.1 (January 21, 2025)](https://raw.githubusercontent.com/VALAWAI/C2_treatment_nonmaleficence_valuator/ASYNCAPI_1.0.0/asyncapi.yml)
+ - API: [1.0.1 (January 21, 2025)](https://raw.githubusercontent.com/VALAWAI/C2_treatment_nonmaleficence_valuator/ASYNCAPI_1.0.1/asyncapi.yml)
  - VALAWAI API: [1.2.0 (March 9, 2024)](https://raw.githubusercontent.com/valawai/MOV/ASYNCAPI_1.2.0/asyncapi.yml)
  - Developed By: [IIIA-CSIC](https://www.iiia.csic.es)
  - License: [GPL 3](LICENSE)
