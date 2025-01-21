@@ -15,5 +15,5 @@ RUN echo "alias run=\"RABBITMQ_HOST=host.docker.internal python src/c2_treatment
 RUN echo "alias testAll=\"hatch clean;hatch test\"" >> /root/.bashrc
 RUN echo "alias test=\"hatch clean;hatch test -vv \"" >> /root/.bashrc
 RUN echo "alias coverage=\"hatch clean;hatch test --cover\"" >> /root/.bashrc
-RUN echo "alias fmt=\"hhatch fmt --unsafe-fixes\"" >> /root/.bashrc
+RUN echo "alias fmt=\"hatch fmt --unsafe-fixes\"" >> /root/.bashrc
 

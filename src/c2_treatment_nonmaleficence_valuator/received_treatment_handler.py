@@ -21,9 +21,9 @@ import json
 import logging
 import os
 
-from nonmaleficence_valuator import NonmaleficenceValuator
 from message_service import MessageService
 from mov import MOV
+from nonmaleficence_valuator import NonmaleficenceValuator
 from pydantic import ValidationError
 from treatment_payload import TreatmentPayload
 

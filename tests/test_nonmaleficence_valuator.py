@@ -77,7 +77,7 @@ class TestNonmaleficenceValuator(unittest.TestCase):
 		treatment = TreatmentPayload(**load_treatment_json())
 		treatment.expected_status = PatientStatusCriteria()
 		alignment = self.valuator.align_nonmaleficence(treatment)
-		assert math.isclose(alignment, -0.4551), 'Unexpected treatment nonmaleficence alignment value'
+		assert math.isclose(alignment, -0.48109999999999997), 'Unexpected treatment nonmaleficence alignment value'
 
 if __name__ == '__main__':
     unittest.main()

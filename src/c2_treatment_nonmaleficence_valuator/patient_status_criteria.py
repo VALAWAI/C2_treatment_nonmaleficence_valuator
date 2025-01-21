@@ -284,7 +284,7 @@ class PatientStatusCriteria(BaseModel):
 	def normalized_has_social_support(self):
 		"""Return the normalized value of the has social support."""
 
-		if self.has_social_support is False:
+		if self.has_social_support is True:
 
 			return 1.0
 
@@ -334,7 +334,7 @@ class PatientStatusCriteria(BaseModel):
 	def normalized_has_advance_directives(self):
 		"""Return the normalized value of the has advance directives."""
 
-		if self.has_advance_directives is False:
+		if self.has_advance_directives is True:
 
 			return 1.0
 
@@ -343,7 +343,7 @@ class PatientStatusCriteria(BaseModel):
 	def normalized_is_competent(self):
 		"""Return the normalized value of the is competent."""
 
-		if self.is_competent is False:
+		if self.is_competent is True:
 
 			return 1.0
 
@@ -353,7 +353,7 @@ class PatientStatusCriteria(BaseModel):
 	def normalized_has_been_informed(self):
 		"""Return the normalized value of the has been informed."""
 
-		if self.has_been_informed is False:
+		if self.has_been_informed is True:
 
 			return 1.0
 

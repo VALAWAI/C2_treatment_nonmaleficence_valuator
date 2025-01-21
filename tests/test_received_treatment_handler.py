@@ -109,7 +109,7 @@ class TestReceivedTreatmentHandler(unittest.TestCase):
 		self.__assert_evaluate_treatment(treatment,0.0)
 
 	def test_not_evaluate_treatment_without_id(self):
-		"""Check that the not evaluate a treatement without an identifier."""
+		"""Check that the not evaluate a treatment without an identifier."""
 
 		payload = load_treatment_json()
 		del payload['id']
@@ -118,7 +118,7 @@ class TestReceivedTreatmentHandler(unittest.TestCase):
 		mov_get_log_message_with('ERROR',payload)
 
 	def test_not_evaluate_treatment_without_before_status(self):
-		"""Check that the not evaluate a treatement without before status."""
+		"""Check that the not evaluate a treatment without before status."""
 
 		payload = load_treatment_json()
 		payload['id'] = str(uuid.uuid4())
@@ -127,7 +127,7 @@ class TestReceivedTreatmentHandler(unittest.TestCase):
 		mov_get_log_message_with('ERROR',payload)
 
 	def test_not_evaluate_treatment_without_actions(self):
-		"""Check that the not evaluate a treatement without actions."""
+		"""Check that the not evaluate a treatment without actions."""
 
 		payload = load_treatment_json()
 		payload['id'] = str(uuid.uuid4())
@@ -136,7 +136,7 @@ class TestReceivedTreatmentHandler(unittest.TestCase):
 		mov_get_log_message_with('ERROR',payload)
 
 	def test_not_evaluate_treatment_with_empty_actions(self):
-		"""Check that the not evaluate a treatement with empty actions."""
+		"""Check that the not evaluate a treatment with empty actions."""
 
 		payload = load_treatment_json()
 		payload['id'] = str(uuid.uuid4())

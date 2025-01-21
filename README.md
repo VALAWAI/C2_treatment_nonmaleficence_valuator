@@ -7,8 +7,8 @@ a patient follows the nonmaleficence_value.
 
  - Type: C2
  - Name: Treament nonmaleficence valuator
- - Version: 1.0.0 (January 20, 2025)
- - API: [1.0.0 (January 20, 2025)](https://raw.githubusercontent.com/VALAWAI/C2_treatment_nonmaleficence_valuator/ASYNCAPI_1.0.0/asyncapi.yml)
+ - Version: 1.0.1 (January 21, 2025)
+ - API: [1.0.1 (January 21, 2025)](https://raw.githubusercontent.com/VALAWAI/C2_treatment_nonmaleficence_valuator/ASYNCAPI_1.0.0/asyncapi.yml)
  - VALAWAI API: [1.2.0 (March 9, 2024)](https://raw.githubusercontent.com/valawai/MOV/ASYNCAPI_1.2.0/asyncapi.yml)
  - Developed By: [IIIA-CSIC](https://www.iiia.csic.es)
  - License: [GPL 3](LICENSE)
@@ -53,46 +53,86 @@ This will create the container named `valawai/c2_treatment_nonmaleficence_valuat
 
 The following environment variables configure the Docker image's behavior, categorized by function:
 
-**I. RabbitMQ Connection Parameters:** These variables govern the connection to the RabbitMQ message broker.
+#### I. RabbitMQ Connection Parameters:
 
-*   `RABBITMQ_HOST`: Specifies the hostname or IP address of the RabbitMQ server. The default value is `mov-mq`.
-*   `RABBITMQ_PORT`: Defines the port number used for communication with RabbitMQ. The default value is `5672`.
-*   `RABBITMQ_USERNAME`: Sets the username for authenticating with the RabbitMQ server. The default value is `mov`.
-*   `RABBITMQ_PASSWORD`: Sets the password for authenticating with the RabbitMQ server. The default value is `password`. *Note: For production environments, it is strongly advised to avoid storing passwords directly in environment variables. Consider using secrets management solutions.*
-*   `RABBITMQ_MAX_RETRIES`: Determines the maximum number of attempts to establish a connection to RabbitMQ. The default value is `100`.
-*   `RABBITMQ_RETRY_SLEEP`: Specifies the delay, in seconds, between connection attempts to RabbitMQ. The default value is `3`.
+These variables govern the connection to the RabbitMQ message broker.
 
-**II. Logging Configuration:** These variables control the logging behavior of the application.
+*   `RABBITMQ_HOST`: Specifies the hostname or IP address of the RabbitMQ server. The default
+ value is `mov-mq`.
+*   `RABBITMQ_PORT`: Defines the port number used for communication with RabbitMQ. The default
+ value is `5672`.
+*   `RABBITMQ_USERNAME`: Sets the username for authenticating with the RabbitMQ server. 
+The default value is `mov`.
+*   `RABBITMQ_PASSWORD`: Sets the password for authenticating with the RabbitMQ server. 
+The default value is `password`. *Note: For production environments, it is strongly advised 
+to avoid storing passwords directly in environment variables. Consider using secrets management
+ solutions.*
+*   `RABBITMQ_MAX_RETRIES`: Determines the maximum number of attempts to establish a connection
+ to RabbitMQ. The default value is `100`.
+*   `RABBITMQ_RETRY_SLEEP`: Specifies the delay, in seconds, between connection attempts to 
+RabbitMQ. The default value is `3`.
 
-*   `LOG_CONSOLE_LEVEL`: Sets the minimum log level for messages displayed on the console. Possible values, in increasing order of severity, are `DEBUG`, `INFO`, `WARNING`, `ERROR`, `FATAL`, and `CRITICAL`. The default value is `INFO`.
-*   `LOG_FILE_LEVEL`: Sets the minimum log level for messages written to the log file. Possible values are the same as `LOG_CONSOLE_LEVEL`. The default value is `DEBUG`.
-*   `LOG_FILE_MAX_BYTES`: Defines the maximum size, in bytes, of the log file before it is rolled over (renamed and a new file created). The default value is `1000000`.
-*   `LOG_FILE_BACKUP_COUNT`: Specifies the number of rolled-over log files to retain. Older files are deleted when this limit is exceeded. The default value is `5`.
-*   `LOG_DIR`: Specifies the directory where log files are stored. The default value is `logs`.
-*   `LOG_FILE_NAME`: Defines the base filename for the log file within the `LOG_DIR`. The default value is `c2_treatment_nonmaleficence_valuator.txt`.
+#### II. Logging Configuration:
 
-**III. Component Identification:** This variable manages the storage of the component's unique identifier.
+These variables control the logging behavior of the application.
 
-*   `COMPONET_ID_FILE_NAME`: Defines the filename (within the `LOG_DIR`) where the component's identifier, obtained during registration with the MOV, is stored. The default value is `component_id.json`.
+*   `LOG_CONSOLE_LEVEL`: Sets the minimum log level for messages displayed on the console.
+ Possible values, in increasing order of severity, are `DEBUG`, `INFO`, `WARNING`, `ERROR`,
+  `FATAL`, and `CRITICAL`. The default value is `INFO`.
+*   `LOG_FILE_LEVEL`: Sets the minimum log level for messages written to the log file. 
+Possible values are the same as `LOG_CONSOLE_LEVEL`. The default value is `DEBUG`.
+*   `LOG_FILE_MAX_BYTES`: Defines the maximum size, in bytes, of the log file before it
+ is rolled over (renamed and a new file created). The default value is `1000000`.
+*   `LOG_FILE_BACKUP_COUNT`: Specifies the number of rolled-over log files to retain. Older
+ files are deleted when this limit is exceeded. The default value is `5`.
+*   `LOG_DIR`: Specifies the directory where log files are stored. The default value 
+is `logs`.
+*   `LOG_FILE_NAME`: Defines the base filename for the log file within the `LOG_DIR`. The default
+ value is `c2_treatment_nonmaleficence_valuator.txt`.
 
-**IV. Nonmaleficence Value Calculation Weights:** These variables define the relative importance of various factors in the calculation of the nonmaleficence value. Each variable represents a weighting factor applied to the corresponding attribute.
+#### III. Component Identification:
 
-*   `AGE_RANGE_WEIGHT`: Weight applied to the patient's age range.
-*   `CCD_WEIGHT`: Weight applied to the CCD (Clinical Classification for Diseases).
-*   `MACA_WEIGHT`: Weight applied to the MACA (presumably a specific assessment or metric).
-*   `EXPECTED_SURVIVAL_WEIGHT`: Weight applied to the patient's expected survival.
-*   `FRAIL_VIG_WEIGHT`: Weight applied to the Frail VIG (likely a frailty assessment).
-*   `CLINICAL_RISK_GROUP_WEIGHT`: Weight applied to the patient's clinical risk group.
-*   `HAS_SOCIAL_SUPPORT_WEIGHT`: Weight applied to the presence of social support.
-*   `INDEPENDENCE_AT_ADMISSION_WEIGHT`: Weight applied to the patient's level of independence at the time of admission.
-*   `INDEPENDENCE_INSTRUMENTAL_ACTIVITIES_WEIGHT`: Weight applied to the patient's independence in instrumental activities of daily living.
-*   `HAS_ADVANCE_DIRECTIVES_WEIGHT`: Weight applied to the presence of advance directives.
-*   `IS_COMPETENT_WEIGHT`: Weight applied to the patient's competency status.
-*   `HAS_BEEN_INFORMED_WEIGHT`: Weight applied to whether the patient has been adequately informed.
-*   `IS_COERCED_WEIGHT`: Weight applied to whether the patient is being coerced.
-*   `HAS_COGNITIVE_IMPAIRMENT_WEIGHT`: Weight applied to the presence of cognitive impairment.
-*   `HAS_EMOCIONAL_PAIN_WEIGHT`: Weight applied to the presence of emotional pain.
-*   `DISCOMFORT_DEGREE_WEIGHT`: Weight applied to the degree of discomfort experienced by the patient.
+This variable manages the storage of the component's unique identifier.
+
+*   `COMPONET_ID_FILE_NAME`: Defines the filename (within the `LOG_DIR`) where the component's
+ identifier, obtained during registration with the MOV, is stored. The default value is `component_id.json`.
+
+#### IV. Nonmaleficence Value Calculation Weights:
+
+These variables define the relative importance of various factors in the calculation 
+of the nonmaleficence value. Each variable represents a weighting factor applied
+ to the corresponding attribute.
+
+*   **`AGE_RANGE_WEIGHT`**: Weight applied to the patient's age range. Default value: `0.013`.
+*   **`CCD_WEIGHT`**: Weight applied to the Complex Cronic Disease (CCD). Default
+ value: `0.026`.
+*   **`MACA_WEIGHT`**: `MACA_WEIGHT`: Weight applied to the MACA status for patients who died
+ within 12 months. Default value: `0.039`.
+*   **`EXPECTED_SURVIVAL_WEIGHT`**: Weight applied to the patient's expected survival. Default 
+value: `0.238`.
+*   **`FRAIL_VIG_WEIGHT`**: Weight applied to the patient's frailty index. Default value: `0.079`.
+*   **`CLINICAL_RISK_GROUP_WEIGHT`**: Weight applied to the patient's clinical risk group. Default
+ value: `0.013`.
+*   **`HAS_SOCIAL_SUPPORT_WEIGHT`**: Weight applied to the presence of social support. Default
+ value: `0.0`.
+*   **`INDEPENDENCE_AT_ADMISSION_WEIGHT`**: Weight applied to the patient's level of independence 
+at the time of admission. Default value: `0.158`.
+*   **`INDEPENDENCE_INSTRUMENTAL_ACTIVITIES_WEIGHT`**: Weight applied to the patient's independence 
+in instrumental activities of daily living (IADLs). Default value: `0.158`.
+*   **`HAS_ADVANCE_DIRECTIVES_WEIGHT`**: Weight applied to the presence of advance directives
+ (e.g., living will, durable power of attorney for healthcare). Default value: `0.026`.
+*   **`IS_COMPETENT_WEIGHT`**: Weight applied to the patient's competency status (i.e., their 
+legal capacity to make decisions). Default value: `0.0`.
+*   **`HAS_BEEN_INFORMED_WEIGHT`**: Weight applied to whether the patient has been adequately 
+informed about their condition and treatment options. Default value: `0.0`.
+*   **`IS_COERCED_WEIGHT`**: Weight applied to whether the patient is being coerced into making
+ decisions. Default value: `0.0`.
+*   **`HAS_COGNITIVE_IMPAIRMENT_WEIGHT`**: Weight applied to the presence of cognitive impairment.
+ Default value: `0.026`.
+*   **`HAS_EMOCIONAL_PAIN_WEIGHT`**: Weight applied to the presence of emotional pain. Default 
+value: `0.0`.
+*   **`DISCOMFORT_DEGREE_WEIGHT`**: Weight applied to the degree of discomfort experienced by 
+the patient. Default value: `0.224`.
 
  
 ### Docker health check
@@ -119,7 +159,7 @@ configuration:
 This section shows you how to get the C2 Treatment Nonmaleficence Valuator up 
 and running using Docker Compose.
 
-**What you'll need:**
+### What you'll need:
 
 *   **Docker:** This is a tool that lets you run software in isolated "containers."
  You can download it from [https://www.docker.com/get-started](https://www.docker.com/get-started).
@@ -127,10 +167,12 @@ and running using Docker Compose.
  at once. It's usually included with Docker Desktop, or you can install it separately. 
  See the Docker documentation for instructions.
 
-**Let's get started!**
+### et's get started!
 
 1.  **Get the code:** The project's files are on GitHub: 
-[https://github.com/VALAWAI/C2_treatment_nonmaleficence_valuator](https://github.com/VALAWAI/C2_treatment_nonmaleficence_valuator). You'll need to download or "clone" this repository to your computer. If you're not familiar with Git, you can simply download the repository as a ZIP file.
+[https://github.com/VALAWAI/C2_treatment_nonmaleficence_valuator](https://github.com/VALAWAI/C2_treatment_nonmaleficence_valuator).
+ You'll need to download or "clone" this repository to your computer. If you're not familiar with Git, 
+ you can simply download the repository as a ZIP file.
 
 2.  **Start the application:** Open your terminal or command prompt, 
 navigate to the directory where you downloaded the project, and run this command:
@@ -151,7 +193,7 @@ navigate to the directory where you downloaded the project, and run this command
      and `password` for the password. **Important:** Don't use these default logins if you're setting this 
      up for real use (like on a public server). They are only for testing.
 
-**Making changes (if you need to):**
+### Making changes (if you need to):
 
 If you want to change some settings, you can create a file named `.env` 
 in the same folder as the `docker-compose.yml` file. Here's how it works:
@@ -187,7 +229,7 @@ Here's a list of the settings you can change in the `.env` file:
 *   `MOV_UI_PORT` (the port for the MOV web interface, usually 8080)
 *   `LOG_LEVEL` (how much logging information you see; usually `INFO`)
 
-**If you change database settings:**
+### If you change database settings:
 
 If you change any of the settings that start with `MONGO_`, you'll need to reset the database:
 
@@ -195,7 +237,7 @@ If you change any of the settings that start with `MONGO_`, you'll need to reset
 2.  Delete that folder.
 3.  Run `COMPOSE_PROFILES=mov docker-compose up -d` again.
 
-**To stop everything:**
+### To stop everything:
 
 When you're finished, you can stop all the running parts with this command:
 
@@ -208,11 +250,11 @@ COMPOSE_PROFILES=mov docker-compose up -d
 This guide explains how to set up a development environment to work
 on the C2 Treatment Nonmaleficence Valuator code.
 
-**Prerequisites:**
+### Prerequisites:
 
 * Ensure you have Docker and Docker Compose installed on your system.
 
-**Starting the Development Environment:**
+### Starting the Development Environment:
 
 1.  **Run the development script:**
 
@@ -227,7 +269,7 @@ on the C2 Treatment Nonmaleficence Valuator code.
 
     Once the script finishes, you'll have a bash shell where you can interact with the Python code.
 
-**Available Commands:**
+### Available Commands:
 
 The development environment provides several commands for common actions:
 
@@ -241,7 +283,7 @@ in the file `test_something.py`.
 * **coverage:** Runs all unit tests and generates a coverage report.
 * **fmt:** Runs a static code analyzer to check for formatting and style issues.
 
-**Development Tools and Services:**
+### Development Tools and Services:
 
 The development environment also starts several tools and services:
 
@@ -258,7 +300,7 @@ The development environment also starts several tools and services:
 * **Master Of VALAWAI (MOV):** The web UI for interacting with the MOV component. 
 You can access it at [http://localhost:8083](http://localhost:8083).
 
-**Important:** 
+### Important:
 
 The credentials `mov:password` used for RabbitMQ, MongoDB, and MOV should
 be changed for secure deployments in production environments.

@@ -1,7 +1,7 @@
 asyncapi: '2.6.0'
 info:
  title: C2 Treatment nonmaleficence valuator
- version: '1.0.0'
+ version: '1.0.1'
  description: |
   This VALAWAI component calculate the alignment of a patient treatment
   with the value nonmaleficence.
@@ -541,86 +541,86 @@ components:
             - 0.81675
 
     component_parameters_payload:
-      description: The parameters that cna be changed on this component.
+      description: The parameters that can be changed how the nonmaleficence value is calculated.
       type: object
       properties:
         age_range_weight:
-          description: the weight of the patient age range in the alignemnt of the treatment.
+          description: The weight of the patient age range in the nonmaleficence value calculation.
           type: number
           example:
             - 0.040
         ccd_weight:
-          description: the weight of the patient CCD in the alignemnt of the treatment.
+          description: The weight of the patient CCD in the nonmaleficence value calculation.
           type: number
           example:
             - 0.040
         maca_weight:
-          description: the weight of the patient MACA in the alignemnt of the treatment.
+          description: The weight of the patient MACA in the nonmaleficence value calculation.
           type: number
           example:
             - 0.040
         expected_survival_weight:
-          description: the weight of the patient expected survival in the alignemnt of the treatment.
+          description: The weight of the patient expected survival in the nonmaleficence value calculation.
           type: number
           example:
             - 0.326
         frail_VIG_weight:
-          description: the weight of the patient frail VIG in the alignemnt of the treatment.
+          description: The weight of the patient frail VIG in the nonmaleficence value calculation.
           type: number
           example:
             - 0.065
         clinical_risk_group_weight:
-          description: the weight of the patient clinical risk group in the alignemnt of the treatment.
+          description: The weight of the patient clinical risk group in the nonmaleficence value calculation.
           type: number
           example:
             - 0.033
         has_social_support_weight:
-          description: the weight of the patient has social support in the alignemnt of the treatment.
+          description: The weight of the patient has social support in the nonmaleficence value calculation.
           type: number
           example:
             - 0.0
         independence_at_admission_weight:
-          description: the weight of the patient independence at admission in the alignemnt of the treatment.
+          description: The weight of the patient independence at admission in the nonmaleficence value calculation.
           type: number
           example:
             - 0.163
         independence_instrumental_activities_weight:
-          description: the weight of the patient independence instrumental activities in the alignemnt of the treatment.
+          description: The weight of the patient independence instrumental activities in the nonmaleficence value calculation.
           type: number
           example:
             - 0.163
         has_advance_directives_weight:
-          description: the weight of the patient has advance directives in the alignemnt of the treatment.
+          description: The weight of the patient has advance directives in the nonmaleficence value calculation.
           type: number
           example:
             - 0.057
         is_competent_weight:
-          description: the weight of the patient is competent in the alignemnt of the treatment.
+          description: The weight of the patient is competent in the nonmaleficence value calculation.
           type: number
           example:
             - 0.0
         has_been_informed_weight:
-          description: the weight of the patient has been informed in the alignemnt of the treatment.
+          description: The weight of the patient has been informed in the nonmaleficence value calculation.
           type: number
           example:
             - 0.0
         is_coerced_weight:
-          description: the weight of the patient is coerced in the alignemnt of the treatment.
+          description: The weight of the patient is coerced in the nonmaleficence value calculation.
           type: number
           example:
             - 0.0
         has_cognitive_impairment_weight:
-          description: the weight of the patient has cognitive impairment in the alignemnt of the treatment.
+          description: The weight of the patient has cognitive impairment in the nonmaleficence value calculation.
           type: number
           example:
             - 0.016
         has_emocional_pain_weight:
-          description: the weight of the patient has emocional pain in the alignemnt of the treatment.
+          description: The weight of the patient has emocional pain in the nonmaleficence value calculation.
           type: number
           example:
             - 0.0
         discomfort_degree_weight:
-          description: the weight of the patient discomfort degree in the alignemnt of the treatment.
+          description: The weight of the patient discomfort degree in the nonmaleficence value calculation.
           type: number
           example:
             - 0.057

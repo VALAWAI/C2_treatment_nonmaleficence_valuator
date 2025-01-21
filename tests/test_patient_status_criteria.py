@@ -144,11 +144,12 @@ class TestPatientStatusCriteria(unittest.TestCase):
 		normalized = self.criteria.normalized_has_social_support()
 		assert normalized == expected
 
+		expected = 1.0
 		self.criteria.has_social_support = True
 		normalized = self.criteria.normalized_has_social_support()
 		assert normalized == expected
 
-		expected = 1.0
+		expected = 0.0
 		self.criteria.has_social_support = False
 		normalized = self.criteria.normalized_has_social_support()
 		assert normalized == expected
@@ -191,11 +192,12 @@ class TestPatientStatusCriteria(unittest.TestCase):
 		normalized = self.criteria.normalized_has_advance_directives()
 		assert normalized == expected
 
+		expected = 1.0
 		self.criteria.has_advance_directives = True
 		normalized = self.criteria.normalized_has_advance_directives()
 		assert normalized == expected
 
-		expected = 1.0
+		expected = 0.0
 		self.criteria.has_advance_directives = False
 		normalized = self.criteria.normalized_has_advance_directives()
 		assert normalized == expected
@@ -208,11 +210,12 @@ class TestPatientStatusCriteria(unittest.TestCase):
 		normalized = self.criteria.normalized_is_competent()
 		assert normalized == expected
 
+		expected = 1.0
 		self.criteria.is_competent = True
 		normalized = self.criteria.normalized_is_competent()
 		assert normalized == expected
 
-		expected = 1.0
+		expected = 0.0
 		self.criteria.is_competent = False
 		normalized = self.criteria.normalized_is_competent()
 		assert normalized == expected
@@ -225,11 +228,12 @@ class TestPatientStatusCriteria(unittest.TestCase):
 		normalized = self.criteria.normalized_has_been_informed()
 		assert normalized == expected
 
+		expected = 1.0
 		self.criteria.has_been_informed = True
 		normalized = self.criteria.normalized_has_been_informed()
 		assert normalized == expected
 
-		expected = 1.0
+		expected = 0.0
 		self.criteria.has_been_informed = False
 		normalized = self.criteria.normalized_has_been_informed()
 		assert normalized == expected
