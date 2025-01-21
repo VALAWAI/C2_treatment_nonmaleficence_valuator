@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field
 
 
 class ChangeParametersPayload(BaseModel):
-	"""The payload of the message to change the parameters of teh component."""
+	"""The payload of the message to change the parameters of the component."""
 
 	age_range_weight: float | None = Field(default=None, ge=0.0, le=1.0, title="The importance of the age range when calculate the nonmaleficence value.")
 	ccd_weight: float | None = Field(default=None, ge=0.0, le=1.0, title="The importance of the ccd when calculate the nonmaleficence value.")

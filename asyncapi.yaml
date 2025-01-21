@@ -32,7 +32,7 @@ channels:
         $ref: '#/components/messages/treatment_value_feedback'
 
   valawai/c2/treatment_nonmaleficence_valuator/control/parameters:
-    description: Allow to change the parameters of teh component
+    description: Allow to change the parameters of the component
     subscribe:
       message:
         $ref: '#/components/messages/component_parameters'
