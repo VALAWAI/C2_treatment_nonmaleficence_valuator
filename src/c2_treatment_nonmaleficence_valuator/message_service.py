@@ -25,80 +25,6 @@ from threading import Thread
 
 import pika
 
-
-class _RabbitMQConnection:
-
-	def __init__(self,
-		host:str=os.getenv('RABBITMQ_HOST','mov-mq'),
-		port:int=int(os.getenv('RABBITMQ_PORT',"5672")),
-		username:str=os.getenv('RABBITMQ_USERNAME','mov'),
-		password:str=os.getenv('RABBITMQ_PASSWORD','password'),
-		max_retries:int=int(os.getenv('RABBITMQ_MAX_RETRIES',"100")),
-		retry_sleep_seconds:int=int(os.getenv('RABBITMQ_RETRY_SLEEP',"3")),
-	):
-		"""Initialize the connection to the RabbitMQ
-
-		Parameters
-		----------
-		host : str
-			The RabbitMQ server host name. By default uses the environment variable RABBITMQ_HOST
-			and if it is not defined uses 'mov-mq'.
-		port : int
-			The RabbitMQ server port. By default uses the environment variable RABBITMQ_PORT
-			and if it is not defined uses '5672'.
-		username : str
-			The user name of the credential to connect to the RabbitMQ serve. By default uses the environment
-			variable RABBITMQ_USERNAME and if it is not defined uses 'mov'.
-		password : str
-			The password of the credential to connect to the RabbitMQ serve. By default uses the environment
-			variable RABBITMQ_PASSWORD and if it is not defined uses 'password'.
-		max_retries : int
-			The number maximum of tries to create a connection with the RabbitMQ server. By default uses
-			the environment variable RABBITMQ_MAX_RETRIES and if it is not defined uses '100'.
-		retry_sleep_seconds : int
-			The seconds to wait between the tries for create a connection with the RabbitMQ server.
-			By default uses the environment variable RABBITMQ_RETRY_SLEEP and if it is not defined uses '3'.
-		"""
-
-		tries=0
-		while tries < max_retries:
-
-			try:
-
-				credentials = pika.PlainCredentials(username=username,password=password)
-				self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=host,port=port,credentials=credentials))
-				self.channel = self.connection.channel()
-
-			except (OSError,pika.exceptions.AMQPError):
-
-				logging.warning("Connection was closed, retrying...")
-				time.sleep(retry_sleep_seconds)
-
-			else:
-
-				return
-
-			tries+=1
-
-		error_msg = "Cannot connect with the RabbitMQ"
-		logging.error(error_msg)
-		raise pika.exceptions.AMQPError(error_msg)
-
-	def close(self):
-		"""Close the connection."""
-
-		try:
-
-			if self.connection.is_open is True:
-
-				self.channel.stop_consuming()
-				self.connection.close()
-
-		except (OSError,pika.exceptions.AMQPError):
-
-			logging.exception("Cannot close the connection.")
-
-
 class MessageService:
 	"""The service to send and receive messages from the RabbitMQ"""
 
@@ -134,34 +60,31 @@ class MessageService:
 			By default uses the environment variable RABBITMQ_RETRY_SLEEP and if it is not defined uses '3'.
 		"""
 
-		try:
+		self.credentials = pika.PlainCredentials(username=username,password=password)
+		self.host=host
+		self.port=port
 
-			self.listen_connection = _RabbitMQConnection(host=host,port=port,username=username,password=password,max_retries=max_retries,retry_sleep_seconds=retry_sleep_seconds)
-			logging.debug("Opened Listening connection to RabbitMQ")
-
-		except pika.exceptions.AMQPError as listen_error:
-
-			error_msg = f"Cannot listen from the RabbitMQ at {host}:{port}"
-			raise ValueError(error_msg) from listen_error
-
-		try:
-
-
-			self.publish_connection = _RabbitMQConnection(host=host,port=port,username=username,password=password,max_retries=max_retries,retry_sleep_seconds=retry_sleep_seconds)
-			logging.debug("Opened publish connection to RabbitMQ")
-
-		except pika.exceptions.AMQPError as publish_error:
+		tries=0
+		while tries < max_retries:
 
 			try:
 
-				self.listen_connection.close()
+				self.listen_connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.host,port=self.port,credentials=self.credentials))
+				self.listen_channel = self.listen_connection.channel()
 
-			except pika.exceptions.AMQPError:
+			except (OSError,pika.exceptions.AMQPError):
 
-				logging.exception("Cannot close the listening connection to RabbitMQ")
+				logging.warning("Connection was closed, retrying...")
+				time.sleep(retry_sleep_seconds)
 
-			error_msg = f"Cannot connect from the RabbitMQ at {host}:{port}"
-			raise ValueError(error_msg) from publish_error
+			else:
+
+				return
+
+			tries+=1
+			
+		error_msg = f"Cannot listen from the RabbitMQ at {host}:{port}"
+		raise ValueError(error_msg)
 
 
 	def close(self):
@@ -169,10 +92,12 @@ class MessageService:
 
 		try:
 
-			self.listen_connection.close()
-			self.publish_connection.close()
+			if self.listen_connection.is_open is True:
 
-		except pika.exceptions.AMQPError:
+				self.listen_channel.stop_consuming()
+				self.listen_connection.close()
+
+		except (OSError,pika.exceptions.AMQPError):
 
 			logging.exception("Cannot close the connection to RabbitMQ")
 
@@ -193,11 +118,11 @@ class MessageService:
 			The method to call when a message is received.
 		"""
 
-		self.listen_connection.channel.queue_declare(queue=queue,
+		self.listen_channel.queue_declare(queue=queue,
 			durable=True,
 			exclusive=False,
 			auto_delete=False)
-		self.listen_connection.channel.basic_consume(queue=queue,
+		self.listen_channel.basic_consume(queue=queue,
 			auto_ack=True,
 			on_message_callback=callback)
 		logging.debug("Listen for the queue %s",queue)
@@ -218,10 +143,14 @@ class MessageService:
 
 			body=json.dumps(msg)
 			properties=pika.BasicProperties(content_type='application/json')
-			self.publish_connection.channel.basic_publish(exchange='',routing_key=queue,body=body,properties=properties)
+			publish_connection =  pika.BlockingConnection(pika.ConnectionParameters(host=self.host,port=self.port,credentials=self.credentials))
+			publish_channel = publish_connection.channel()
+			publish_channel.basic_publish(exchange='',routing_key=queue,body=body,properties=properties)
 			logging.debug("Publish message to the queue %s",queue)
+			publish_channel.close()
+			publish_connection.close()
 
-		except pika.exceptions.AMQPError:
+		except (OSError,pika.exceptions.AMQPError):
 
 			logging.exception("Cannot publish a msg in the queue %s",queue)
 
@@ -236,7 +165,7 @@ class MessageService:
 		try:
 
 			logging.info("Start listening for events")
-			self.listen_connection.channel.start_consuming()
+			self.listen_channel.start_consuming()
 
 		except KeyboardInterrupt:
 

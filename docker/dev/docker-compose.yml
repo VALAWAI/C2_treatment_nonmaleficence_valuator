@@ -28,7 +28,7 @@ services:
       MOV_DB_USER_PASSWORD: ${MOV_DB_USER_PASSWORD:-password}
     volumes:
       - ./initialize-movDB.js:/docker-entrypoint-initdb.d/init-mongo.js
-      - ${MONGO_LOCAL_DATA:-~/mongo_data/movDB}:/data/db
+      - ${MONGO_LOCAL_DATA:-~/.mongo_data/movDB}:/data/db
   mongo_express:
     image: mongo-express:${MONGO_EXPRESS_TAG:-latest}
     container_name: mov_db_ui_dev

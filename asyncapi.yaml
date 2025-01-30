@@ -519,7 +519,7 @@ components:
             - FIVE
 
     treatment_value_feedback_payload:
-      description: Provides the alignemnt of a treatment with a value.
+      description: Provides the alignment of a treatment with a value.
       type: object
       properties:
         treatment_id:
@@ -529,12 +529,12 @@ components:
            - "1234"
         value_name:
           type: string
-          description: The name of the value that the treament is aligned.
+          description: The name of the value that the treatment is aligned.
           example:
             - "Nonmaleficence"
         alignment:
           type: number
-          description: The alignemnt of the value with the the treament.
+          description: The alignment of the value with the the treatment.
           maximum: 1
           minimum: -1
           Example:

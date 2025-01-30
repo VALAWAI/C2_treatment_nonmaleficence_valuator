@@ -100,7 +100,7 @@ class NonmaleficenceValuator:
 
 
 	def align_nonmaleficence(self,treatment:TreatmentPayload):
-		"""Calculate the alignemnt of a treatemnt with the nonmaleficence value.
+		"""Calculate the alignment of a treatemnt with the nonmaleficence value.
 
 		Parameters
 		----------
