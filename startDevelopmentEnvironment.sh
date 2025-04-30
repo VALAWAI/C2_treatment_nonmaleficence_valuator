@@ -55,7 +55,7 @@ else
 		fi
 		rm -rf ${MONGO_LOCAL_DATA:-~/mongo_data/eduteamsDB}
 	fi
-	DOCKER_BUILDKIT=1 docker build $DOCKER_ARGS -f docker/dev/Dockerfile -t valawai/c2_treatment_nonmaleficence_valuator:dev .
+	DOCKER_BUILDKIT=1 docker build $DOCKER_ARGS --pull -f docker/dev/Dockerfile -t valawai/c2_treatment_nonmaleficence_valuator:dev .
 	if [ $? -eq 0 ]; then
 		docker compose -f docker/dev/docker-compose.yml up -d
 		DOCKER_PARAMS="--rm --name c2_treatment_nonmaleficence_valuator_dev --add-host=host.docker.internal:host-gateway -v /var/run/docker.sock:/var/run/docker.sock -it"
