@@ -31,186 +31,167 @@ from c2_treatment_nonmaleficence_valuator.mov import MOV
 
 
 class TestMOV(unittest.TestCase):
-	"""Class to test the interaction with the Master Of VALAWAI (MOV)"""
+    """Class to test the interaction with the Master Of VALAWAI (MOV)"""
 
-	@classmethod
-	def setUpClass(cls):
-		"""Create the mov."""
+    @classmethod
+    def setUpClass(cls):
+        """Create the mov."""
 
-		cls.message_service = MessageService()
-		cls.mov = MOV(cls.message_service)
+        cls.message_service = MessageService()
+        cls.mov = MOV(cls.message_service)
 
-	@classmethod
-	def tearDownClass(cls):
-		"""Stops the message service."""
+    @classmethod
+    def tearDownClass(cls):
+        """Stops the message service."""
 
-		cls.mov.unregister_component()
-		cls.message_service.close()
+        cls.mov.unregister_component()
+        cls.message_service.close()
 
-	def test_register_component_msg(self):
-		"""Test the creation of the message to register the component"""
+    def test_register_component_msg(self):
+        """Test the creation of the message to register the component"""
 
-		msg = self.mov.register_component_msg()
-		assert re.match(r'\d+\.\d+\.\d+', msg['version'])
-		assert len(msg['asyncapi_yaml']) > 100
+        msg = self.mov.register_component_msg()
+        assert re.match(r'\d+\.\d+\.\d+', msg['version'])
+        assert len(msg['asyncapi_yaml']) > 100
 
-	def callback(self, _ch, _method, _properties, body):
-		"""Called when a message is received from a listener."""
+    def callback(self, _ch, _method, _properties, body):
+        """Called when a message is received from a listener."""
 
-		try:
+        try:
+            logging.debug("Received %s", body)
+            msg = json.loads(body)
+            self.msgs.append(msg)
 
-			logging.debug("Received %s", body)
-			msg = json.loads(body)
-			self.msgs.append(msg)
+        except ValueError:
+            pass
 
-		except ValueError:
-			pass
+    def __assert_registered(self, component_id):
+        """Check that a component is registered."""
 
-	def __assert_registerd(self, component_id):
-		"""Check that a component is registered."""
+        found = False
+        for i in range(10):
+            time.sleep(1)
+            self.msgs = []
+            query_id = f"query_assert_registered_{i}"
+            query = {
+                'id': query_id,
+                'type': 'C2',
+                'pattern': 'c2_treatment_nonmaleficence_valuator',
+                'offset': 0,
+                'limit': 1000
+            }
+            self.message_service.publish_to('valawai/component/query', query)
+            for _j in range(10):
+                if len(self.msgs) != 0 and self.msgs[0]['query_id'] == query_id:
+                    if self.msgs[0]['total'] > 0:
+                        for component in self.msgs[0]['components']:
+                            if component['id'] == component_id:
+                                found = True
+                                break
+                    break
+                time.sleep(1)
 
-		found = False
-		for i in range(10):
+        assert found, f"Component {component_id} is not registered"
+        log_dir = os.getenv("LOG_DIR", "logs")
+        component_id_path = os.path.join(log_dir, os.getenv("COMPONET_ID_FILE_NAME", "component_id.json"))
 
-			time.sleep(1)
-			self.msgs = []
-			query_id = f"query_assert_registerd_{i}"
-			query = {
-				'id':query_id,
-				'type':'C2',
-				'pattern':'c2_treatment_nonmaleficence_valuator',
-				'offset':0,
-				'limit':1000
-			}
-			self.message_service.publish_to('valawai/component/query', query)
-			for _j in range(10):
+        # No stored component_id into a file
+        assert os.path.isfile(component_id_path)
+        assert os.path.getsize(component_id_path) > 0
 
-				if len(self.msgs) != 0 and self.msgs[0]['query_id'] == query_id:
+    def __assert_unregistered(self, component_id):
+        """Check that a component is unregistered."""
 
-					if self.msgs[0]['total'] > 0:
+        found = False
+        for i in range(10):
+            time.sleep(1)
+            self.msgs = []
+            query_id = f"query_assert_unregistered_{i}"
+            query = {
+                'id': query_id,
+                'type': 'C2',
+                'pattern': 'c2_treatment_nonmaleficence_valuator',
+                'offset': 0,
+                'limit': 1000
+            }
+            self.message_service.publish_to('valawai/component/query', query)
+            for _j in range(10):
+                if len(self.msgs) != 0 and self.msgs[0]['query_id'] == query_id:
+                    found = False
+                    if self.msgs[0]['total'] > 0:
+                        for component in self.msgs[0]['components']:
+                            if component['id'] == component_id:
+                                found = True
+                                continue
+                    break
+                time.sleep(1)
 
-						for component in self.msgs[0]['components']:
+        assert not found, f"Component {component_id} is not unregistered"
+        log_dir = os.getenv("LOG_DIR", "logs")
+        component_id_path = os.path.join(log_dir, os.getenv("COMPONET_ID_FILE_NAME", "component_id.json"))
+        assert not os.path.isfile(component_id_path) or os.path.getsize(component_id_path) == 0, "No removed component_id into a file"
 
-							if component['id'] == component_id:
-								found = True
-								break
+    def __assert_registered_with_mov(self):
+        """Assert the component is registered"""
 
-					break
-				time.sleep(1)
+        self.message_service.start_consuming_and_forget()
+        self.mov.register_component()
 
-		assert found,f"Component {component_id} is not registered"
-		log_dir = os.getenv("LOG_DIR","logs")
-		component_id_path = os.path.join(log_dir,os.getenv("COMPONET_ID_FILE_NAME","component_id.json"))
+        for _i in range(10):
+            if self.mov.component_id is not None:
+                break
+            time.sleep(1)
 
-		# No stored component_id into a file
-		assert os.path.isfile(component_id_path)
-		assert os.path.getsize(component_id_path) > 0
+        assert self.mov.component_id is not None
 
+    def test_register_and_unregister_component(self):
+        """Test the register and unregister the component"""
 
-	def __assert_unregisterd(self, component_id):
-		"""Check that a component is unregistered."""
+        self.msgs = []
+        self.message_service.listen_for('valawai/component/page', self.callback)
+        self.__assert_registered_with_mov()
 
-		found = False
-		for i in range(10):
+        component_id = self.mov.component_id
+        self.__assert_registered(component_id)
 
-			time.sleep(1)
-			self.msgs = []
-			query_id = f"query_assert_unregisterd_{i}"
-			query = {
-				'id':query_id,
-				'type':'C2',
-				'pattern':'c2_treatment_nonmaleficence_valuator',
-				'offset':0,
-				'limit':1000
-			}
-			self.message_service.publish_to('valawai/component/query', query)
-			for _j in range(10):
+        self.mov.unregister_component()
+        self.__assert_unregistered(component_id)
 
-				if len(self.msgs) != 0 and self.msgs[0]['query_id'] == query_id:
+    def test_debug(self):
+        """Check that the component send a DEBUG log messages to the MOV"""
 
-					found = False
-					if self.msgs[0]['total'] > 0:
+        payload = {"id": str(uuid.uuid4())}
+        msg = f"Message of the log {payload['id']}"
+        self.mov.debug(msg, payload)
+        log = mov_get_log_message_with('DEBUG', payload)
+        assert log['message'] == msg
 
-						for component in self.msgs[0]['components']:
+    def test_info(self):
+        """Check that the component send a INFO log messages to the MOV"""
 
-							if component['id'] == component_id:
-								found = True
-								continue
+        payload = {"id": str(uuid.uuid4())}
+        msg = f"Message of the log {payload['id']}"
+        self.mov.info(msg, payload)
+        log = mov_get_log_message_with('INFO', payload)
+        assert log['message'] == msg
 
+    def test_warn(self):
+        """Check that the component send a WARN log messages to the MOV"""
 
-					break
+        payload = {"id": str(uuid.uuid4())}
+        msg = f"Message of the log {payload['id']}"
+        self.mov.warn(msg, payload)
+        log = mov_get_log_message_with('WARN', payload)
+        assert log['message'] == msg
 
-				time.sleep(1)
+    def test_error(self):
+        """Check that the component send a ERROR log messages to the MOV"""
 
-		assert not found,f"Component {component_id} is not unregistered"
-		log_dir = os.getenv("LOG_DIR","logs")
-		component_id_path = os.path.join(log_dir,os.getenv("COMPONET_ID_FILE_NAME","component_id.json"))
-		assert not os.path.isfile(component_id_path) or os.path.getsize(component_id_path) == 0,"No removed component_id into a file"
-
-
-	def __assert_register(self):
-		"""Assert the component is registered"""
-
-		self.message_service.start_consuming_and_forget()
-		self.mov.register_component()
-
-		for _i in range(10):
-
-			if self.mov.component_id is not None:
-				break
-
-			time.sleep(1)
-
-		assert self.mov.component_id is not None
-
-	def test_register_and_unregister_component(self):
-		"""Test the register and unregister the component"""
-
-		self.msgs = []
-		self.message_service.listen_for('valawai/component/page', self.callback)
-		self.__assert_register()
-
-		component_id = self.mov.component_id
-		self.__assert_registerd(component_id)
-
-		self.mov.unregister_component()
-		self.__assert_unregisterd(component_id)
-
-	def test_debug(self):
-		"""Check that the component send a DEBUG log messages to the MOV"""
-
-		payload = {"id": str(uuid.uuid4())}
-		msg = f"Message of the log {payload['id']}"
-		self.mov.debug(msg, payload)
-		log = mov_get_log_message_with('DEBUG',payload)
-		assert log['message'] == msg
-
-	def test_info(self):
-		"""Check that the component send a INFO log messages to the MOV"""
-
-		payload = {"id": str(uuid.uuid4())}
-		msg = f"Message of the log {payload['id']}"
-		self.mov.info(msg, payload)
-		log = mov_get_log_message_with('INFO',payload)
-		assert log['message'] == msg
-
-	def test_warn(self):
-		"""Check that the component send a WARN log messages to the MOV"""
-
-		payload = {"id": str(uuid.uuid4())}
-		msg = f"Message of the log {payload['id']}"
-		self.mov.warn(msg, payload)
-		log = mov_get_log_message_with('WARN',payload)
-		assert log['message'] == msg
-
-	def test_error(self):
-		"""Check that the component send a ERROR log messages to the MOV"""
-
-		payload = {"id": str(uuid.uuid4())}
-		msg = f"Message of the log {payload['id']}"
-		self.mov.error(msg, payload)
-		log = mov_get_log_message_with('ERROR',payload)
-		assert log['message'] == msg
+        payload = {"id": str(uuid.uuid4())}
+        msg = f"Message of the log {payload['id']}"
+        self.mov.error(msg, payload)
+        log = mov_get_log_message_with('ERROR', payload)
+        assert log['message'] == msg
 
 
 if __name__ == '__main__':

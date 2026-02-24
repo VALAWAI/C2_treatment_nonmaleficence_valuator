@@ -23,43 +23,41 @@ import logging.config
 import os
 import signal
 
-from change_parameters_handler import ChangeParametersHandler
-from message_service import MessageService
-from mov import MOV
-from received_treatment_handler import ReceivedTreatmentHandler
+from c2_treatment_nonmaleficence_valuator.change_parameters_handler import ChangeParametersHandler
+from c2_treatment_nonmaleficence_valuator.message_service import MessageService
+from c2_treatment_nonmaleficence_valuator.mov import MOV
+from c2_treatment_nonmaleficence_valuator.received_treatment_handler import ReceivedTreatmentHandler
 
 
 class App:
-    """The class used as application of the C2 Treatment nonmaleficence valuator"""
+    """The class used as application of the C2 Treatment nonmaleficence valuator."""
 
     def __init__(self):
-        """Initilaize the application"""
+        """Initialize the application"""
+        self.message_service = None
+        self.mov = None
 
         # Capture when the docker container is stopped
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
     def exit_gracefully(self, _signum, _frame):
-        """Called when the docker container is closed
-        """
+        """Called when the docker container is closed"""
         self.stop()
 
     def stop(self):
         """Finalize the component."""
-
         try:
-
-            self.mov.unregister_component()
-            self.message_service.close()
+            if self.mov:
+                self.mov.unregister_component()
+            if self.message_service:
+                self.message_service.close()
             logging.info("Finished C2 Treatment nonmaleficence valuator")
-
         except (OSError, ValueError):
-
             logging.exception("Could not stop the component")
 
     def start(self):
         """Initialize the component"""
-
         try:
             # Create connection to RabbitMQ
             self.message_service = MessageService()
@@ -77,25 +75,23 @@ class App:
             self.message_service.start_consuming()
 
         except (OSError, ValueError):
-
             logging.exception("Could not start the component")
 
 
 
 def configure_log():
-    """Configure the logging system"""
+    """Configure the logging system."""
 
     try:
+        console_level = logging.getLevelName(os.getenv("LOG_CONSOLE_LEVEL", "INFO"))
+        file_level = logging.getLevelName(os.getenv("LOG_FILE_LEVEL", "DEBUG"))
+        file_max_bytes = int(os.getenv("LOG_FILE_MAX_BYTES", "1000000"))
+        file_backup_count = int(os.getenv("LOG_FILE_BACKUP_COUNT", "5"))
 
-        console_level = logging.getLevelName(os.getenv("LOG_CONSOLE_LEVEL","INFO"))
-        file_level = logging.getLevelName(os.getenv("LOG_FILE_LEVEL","DEBUG"))
-        file_max_bytes = int(os.getenv("LOG_FILE_MAX_BYTES","1000000"))
-        file_backup_count = int(os.getenv("LOG_FILE_BACKUP_COUNT","5"))
-
-        log_dir = os.getenv("LOG_DIR","logs")
+        log_dir = os.getenv("LOG_DIR", "logs")
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
-        log_file_name=os.path.join(log_dir,os.getenv("LOG_FILE_NAME","c2_treatment_nonmaleficence_valuator.txt"))
+        log_file_name = os.path.join(log_dir, os.getenv("LOG_FILE_NAME", "c2_treatment_nonmaleficence_valuator.txt"))
 
         logging.config.dictConfig(
             {
@@ -116,7 +112,7 @@ def configure_log():
                         'class': 'logging.StreamHandler',
                         'stream': 'ext://sys.stdout',
                     },
-                    'file':{
+                    'file': {
                         'level': file_level,
                         'formatter': 'precise',
                         'class': 'logging.handlers.RotatingFileHandler',
@@ -127,7 +123,7 @@ def configure_log():
                 },
                 'loggers': {
                     '': {
-                        'handlers': ['console','file'],
+                        'handlers': ['console', 'file'],
                         'level': 'DEBUG',
                         'propagate': True
                     }
@@ -135,14 +131,13 @@ def configure_log():
             }
         )
 
-    except BaseException:
-
+    except (OSError, ValueError, TypeError):
         logging.basicConfig(level=logging.INFO)
         logging.exception("Could not configure the logging")
 
 
 def main():
-    """The function to launch the C2 Treatment nonmaleficence valuator component"""
+    """The function to launch the C2 Treatment nonmaleficence valuator component."""
 
     configure_log()
     app = App()
@@ -151,5 +146,4 @@ def main():
 
 
 if __name__ == "__main__":
-
     main()

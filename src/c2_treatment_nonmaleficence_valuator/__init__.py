@@ -20,4 +20,6 @@
 import os
 import sys
 
+__version__ = "1.1.0"
+
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))

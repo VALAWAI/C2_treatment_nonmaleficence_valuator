@@ -1,317 +1,147 @@
 # C2_treatment_nonmaleficence_valuator
 
-The C2 treatment nonmaleficence valuator check that the treatments to be applied over
-a patient follows the nonmaleficence_value.
+The C2 treatment non-maleficence valuator obtains the non-maleficence value after applying a treatment to a patient.
 
 ## Summary
 
- - Type: C2
- - Name: Treatment nonmaleficence valuator
- - Version: 1.0.2 (April 30, 2025)
- - API: [1.0.2 (April 30, 2025)](https://raw.githubusercontent.com/VALAWAI/C2_treatment_nonmaleficence_valuator/ASYNCAPI_1.0.2/asyncapi.yml)
- - VALAWAI API: [1.2.0 (March 9, 2024)](https://raw.githubusercontent.com/valawai/MOV/ASYNCAPI_1.2.0/asyncapi.yml)
- - Developed By: [IIIA-CSIC](https://www.iiia.csic.es)
- - License: [GPL 3](LICENSE)
+- **Type**: [C2](https://valawai.github.io/docs/components/C2/)
+- **Name**: Treatment nonmaleficence valuator
+- **Documentation**: [https://valawai.github.io/docs/components/C2/treatment_nonmaleficence_valuator](https://valawai.github.io/docs/components/C2/treatment_nonmaleficence_valuator)
+- **Versions**:
+  - **Stable version**: [1.1.0 (February 23, 2026)](https://github.com/VALAWAI/C2_treatment_nonmaleficence_valuator/tree/1.1.0)
+  - **API**: [1.0.2 (April 30, 2025)](https://raw.githubusercontent.com/VALAWAI/C2_treatment_nonmaleficence_valuator/ASYNCAPI_1.0.2/asyncapi.yaml)
+  - **Required MOV API**: [1.2.0 (March 9, 2024)](https://raw.githubusercontent.com/valawai/MOV/ASYNCAPI_1.2.0/asyncapi.yml)
+- **Developed By**: [IIIA-CSIC](https://www.iiia.csic.es)
+- **License**: [GPL v3](LICENSE)
+- **Technology Readiness Level (TLR)**: [3](https://valawai.github.io/docs/components/C2/treatment_nonmaleficence_valuator/tlr)
 
+## Usage
 
-## Generate Docker image
+The Treatment Non-maleficence Valuator (C2) serves as a specialized evaluation engine designed to measure how effectively a proposed dental treatment adheres to the fundamental medical principle of "first, do no harm." By processing specific data regarding the intended clinical treatment alongside
+the current physiological vulnerabilities of the patient, the component analyzes the decision-making
+framework to ensure that the risks of the procedure do not outweigh the potential benefits. Once this
+data is processed, the component generates an automated feedback score within a precise range of -1
+to 1, where a value of -1 indicates a significant risk of avoidable harm or complications, and a
+value of 1 represents complete alignment with protective safety standards. This allows practitioners
+to instantly identify whether a digital treatment plan minimizes clinical risk or if it requires
+further manual adjustment to ensure the patient’s safety and physical integrity are fully preserved.
 
-The recommended way to create a Docker image for this component is to run the script:
- 
- ```
-./buildDockerImages.sh
-```
+## Deployment
 
-This script will build the image and tag it with the component's version 
-(e.g., `valawai/c2_treatment_nonmaleficence_valuator:1.0.1`).
+The **C2 Treatment nonmaleficence valuator** is designed to run as a Docker container, working within
+the [Master Of VALAWAI (MOV)](https://valawai.github.io/docs/architecture/implementations/mov) ecosystem.
+For a complete guide, including advanced setups, refer to
+the [component's full deployment documentation](https://valawai.github.io/docs/components/C2/treatment_nonmaleficence_valuator/deploy).
 
-The script offers several options for customization:
+Here's how to quickly get it running:
 
-* **Build without cache:** Use `-nc` or `--no-cache` to skip using the cached
- image layers during the build process.
-* **Specify tag:** Use `-t <tag>` or `--tag <tag>` to assign a custom tag name 
-to the image (e.g., `./buildDockerImages.sh -t my-custom-image-name`).
-* **Target architectures:** Use `-p <platforms>` or `--platform <platforms>` to specify
- the architectures (CPU types) for which the image should be built 
- (e.g., `./buildDockerImages.sh -p linux/arm64`). By default, the script builds 
- for `linux/arm64` and `linux/amd64` (both ARM and AMD processors).
-* **Use default platforms:** Use `-dp` or `--default-platforms` to explicitly instruct
- the script to use the default architectures (linux/arm64 and linux/amd64).
-* **Help message:** Use `-h` or `--help` to display a detailed explanation 
-of all available options.
+1. ### Build the Docker Image
 
-For example, to build an image with the tag `latest`, run:
+   First, you need to build the Docker image. Go to the project's root directory and run:
 
-```bash
-./buildDockerImages.sh -t latest
-```
+   ```bash
+   ./buildDockerImages.sh -t latest
+   ```
 
-This will create the container named `valawai/c2_treatment_nonmaleficence_valuator:latest`.
+   This creates the `valawai/c2_treatment_nonmaleficence_valuator:latest` Docker image, which is referenced in the `docker-compose.yml` file.
 
+2. ### Start the Component
 
-### Docker environment variables
+   You have two main ways to start the component:
 
-The following environment variables configure the Docker image's behavior, categorized by function:
+   A. **With MOV:**
+   To run the C2 Treatment nonmaleficence valuator with the MOV, use:
 
-#### I. RabbitMQ Connection Parameters:
+   ```bash
+   COMPOSE_PROFILES=all docker compose up -d
+   ```
 
-These variables govern the connection to the RabbitMQ message broker.
+   Once started, you can access:
+   - **MOV:** [http://localhost:8081](http://localhost:8081)
+   - **RabbitMQ UI:** [http://localhost:8082](http://localhost:8082) (credentials: `mov:password`)
+   - **Mongo DB:** `localhost:27017` (credentials: `mov:password`)
 
-*   `RABBITMQ_HOST`: Specifies the hostname or IP address of the RabbitMQ server. The default
- value is `mov-mq`.
-*   `RABBITMQ_PORT`: Defines the port number used for communication with RabbitMQ. The default
- value is `5672`.
-*   `RABBITMQ_USERNAME`: Sets the username for authenticating with the RabbitMQ server. 
-The default value is `mov`.
-*   `RABBITMQ_PASSWORD`: Sets the password for authenticating with the RabbitMQ server. 
-The default value is `password`. *Note: For production environments, it is strongly advised 
-to avoid storing passwords directly in environment variables. Consider using secrets management
- solutions.*
-*   `RABBITMQ_MAX_RETRIES`: Determines the maximum number of attempts to establish a connection
- to RabbitMQ. The default value is `100`.
-*   `RABBITMQ_RETRY_SLEEP`: Specifies the delay, in seconds, between connection attempts to 
-RabbitMQ. The default value is `3`.
+   B. **As a Standalone Component (connecting to an existing MOV/RabbitMQ):**
+   If you already have MOV running or want to connect to a remote RabbitMQ, you'll need a
+   [`.env` file](https://docs.docker.com/compose/environment-variables/env-file/) with connection
+   details. Create a `.env` file in the same directory as your `docker-compose.yml` like this:
 
-#### II. Logging Configuration:
+   ```properties
+   MOV_MQ_HOST=host.docker.internal
+   MOV_MQ_USERNAME=mov
+   MOV_MQ_PASSWORD=password
+   ```
 
-These variables control the logging behavior of the application.
+   Find full details on these and other variables in the
+   [component's dedicated deployment documentation](https://valawai.github.io/docs/components/C2/treatment_nonmaleficence_valuator/deploy).
+   Once your `.env` file is configured, start only the component (without MOV) using:
 
-*   `LOG_CONSOLE_LEVEL`: Sets the minimum log level for messages displayed on the console.
- Possible values, in increasing order of severity, are `DEBUG`, `INFO`, `WARNING`, `ERROR`,
-  `FATAL`, and `CRITICAL`. The default value is `INFO`.
-*   `LOG_FILE_LEVEL`: Sets the minimum log level for messages written to the log file. 
-Possible values are the same as `LOG_CONSOLE_LEVEL`. The default value is `DEBUG`.
-*   `LOG_FILE_MAX_BYTES`: Defines the maximum size, in bytes, of the log file before it
- is rolled over (renamed and a new file created). The default value is `1000000`.
-*   `LOG_FILE_BACKUP_COUNT`: Specifies the number of rolled-over log files to retain. Older
- files are deleted when this limit is exceeded. The default value is `5`.
-*   `LOG_DIR`: Specifies the directory where log files are stored. The default value 
-is `logs`.
-*   `LOG_FILE_NAME`: Defines the base filename for the log file within the `LOG_DIR`. The default
- value is `c2_treatment_nonmaleficence_valuator.txt`.
+   ```bash
+   COMPOSE_PROFILES=component docker compose up -d
+   ```
 
-#### III. Component Identification:
+3. ### Stop All Containers
 
-This variable manages the storage of the component's unique identifier.
+   To stop all containers launched, run:
 
-*   `COMPONET_ID_FILE_NAME`: Defines the filename (within the `LOG_DIR`) where the component's
- identifier, obtained during registration with the MOV, is stored. The default value is `component_id.json`.
+   ```bash
+   COMPOSE_PROFILES=all docker compose down
+   ```
 
-#### IV. Nonmaleficence Value Calculation Weights:
+   This command stops the MOV and RabbitMQ containers.
 
-These variables define the relative importance of various factors in the calculation 
-of the nonmaleficence value. Each variable represents a weighting factor applied
- to the corresponding attribute.
+## Development environment
 
-*   **`AGE_RANGE_WEIGHT`**: Weight applied to the patient's age range. Default value: `0.013`.
-*   **`CCD_WEIGHT`**: Weight applied to the Complex Cronic Disease (CCD). Default
- value: `0.026`.
-*   **`MACA_WEIGHT`**: `MACA_WEIGHT`: Weight applied to the MACA status for patients who died
- within 12 months. Default value: `0.039`.
-*   **`EXPECTED_SURVIVAL_WEIGHT`**: Weight applied to the patient's expected survival. Default 
-value: `0.238`.
-*   **`FRAIL_VIG_WEIGHT`**: Weight applied to the patient's frailty index. Default value: `0.079`.
-*   **`CLINICAL_RISK_GROUP_WEIGHT`**: Weight applied to the patient's clinical risk group. Default
- value: `0.013`.
-*   **`HAS_SOCIAL_SUPPORT_WEIGHT`**: Weight applied to the presence of social support. Default
- value: `0.0`.
-*   **`INDEPENDENCE_AT_ADMISSION_WEIGHT`**: Weight applied to the patient's level of independence 
-at the time of admission. Default value: `0.158`.
-*   **`INDEPENDENCE_INSTRUMENTAL_ACTIVITIES_WEIGHT`**: Weight applied to the patient's independence 
-in instrumental activities of daily living (IADLs). Default value: `0.158`.
-*   **`HAS_ADVANCE_DIRECTIVES_WEIGHT`**: Weight applied to the presence of advance directives
- (e.g., living will, durable power of attorney for healthcare). Default value: `0.026`.
-*   **`IS_COMPETENT_WEIGHT`**: Weight applied to the patient's competency status (i.e., their 
-legal capacity to make decisions). Default value: `0.0`.
-*   **`HAS_BEEN_INFORMED_WEIGHT`**: Weight applied to whether the patient has been adequately 
-informed about their condition and treatment options. Default value: `0.0`.
-*   **`IS_COERCED_WEIGHT`**: Weight applied to whether the patient is being coerced into making
- decisions. Default value: `0.0`.
-*   **`HAS_COGNITIVE_IMPAIRMENT_WEIGHT`**: Weight applied to the presence of cognitive impairment.
- Default value: `0.026`.
-*   **`HAS_EMOCIONAL_PAIN_WEIGHT`**: Weight applied to the presence of emotional pain. Default 
-value: `0.0`.
-*   **`DISCOMFORT_DEGREE_WEIGHT`**: Weight applied to the degree of discomfort experienced by 
-the patient. Default value: `0.224`.
+To ensure a consistent and isolated development experience, this component is configured
+to use Docker. This approach creates a self-contained environment with all the necessary
+software and tools for building and testing, minimizing conflicts with your local system
+and ensuring reproducible results.
 
- 
-### Docker health check
-
-The component stores its registration details in a file. Unless overridden by the **COMPONET_ID_FILE_NAME**
-environment variable, this file is located at **/app/${LOG_DIR:-logs}/${COMPONET_ID_FILE_NAME:-component_id.json}**.
-This file is deleted when the component is unregistered. Therefore, checking the file's existence and size
-provides a straightforward health check. The following Docker Compose snippet illustrates a health check
-configuration:
-
-```
-    healthcheck:
-      test: ["CMD-SHELL", "test -s /app/logs/component_id.json"]
-      interval: 1m
-      timeout: 10s
-      retries: 5
-      start_period: 1m
-      start_interval: 5s
-```
-
-
-## Deploying the Component
-
-This section shows you how to get the C2 Treatment Nonmaleficence Valuator up 
-and running using Docker Compose.
-
-### What you'll need:
-
-*   **Docker:** This is a tool that lets you run software in isolated "containers."
- You can download it from [https://www.docker.com/get-started](https://www.docker.com/get-started).
-*   **Docker Compose:** This tool helps you manage multiple Docker containers
- at once. It's usually included with Docker Desktop, or you can install it separately. 
- See the Docker documentation for instructions.
-
-### et's get started!
-
-1.  **Get the code:** The project's files are on GitHub: 
-[https://github.com/VALAWAI/C2_treatment_nonmaleficence_valuator](https://github.com/VALAWAI/C2_treatment_nonmaleficence_valuator).
- You'll need to download or "clone" this repository to your computer. If you're not familiar with Git, 
- you can simply download the repository as a ZIP file.
-
-2.  **Start the application:** Open your terminal or command prompt, 
-navigate to the directory where you downloaded the project, and run this command:
-
-    ```bash
-    COMPOSE_PROFILES=mov docker compose up -d
-    ```
-
-    This command tells Docker Compose to start the application in the background (`-d`).
-     The `mov` part tells it to start the C2 component along with a related system called MOV.
-
-3.  **Check if it's working:**
-
-    *   Open your web browser and go to [http://localhost:8080](http://localhost:8080). 
-    You should see the [Master of valawai (MOV)](/tutorials/mov) user interface.
-    *   (Optional) You can also check the RabbitMQ message queue by going to
-     [http://localhost:8081](http://localhost:8081). The default login is `mov` for the username 
-     and `password` for the password. **Important:** Don't use these default logins if you're setting this 
-     up for real use (like on a public server). They are only for testing.
-
-### Making changes (if you need to):
-
-If you want to change some settings, you can create a file named `.env` 
-in the same folder as the `docker-compose.yml` file. Here's how it works:
-
-1.  Create a new file named `.env` in your text editor.
-2.  Add lines like this to change settings:
-
-    ```
-    MQ_HOST=my.custom.rabbitmq.server
-    MQ_PASSWORD=my_secret_password
-    ```
-
-    This example changes the message queue server and the password.
-
-Here's a list of the settings you can change in the `.env` file:
-
-*   `C2_TREATMENT_NONMALEFICENCE_VALUATOR_TAG` (usually leave this as `latest`)
-*   `MQ_HOST` (the address of the message queue)
-*   `MQ_PORT` (the port of the message queue, usually 5672)
-*   `MQ_UI_PORT` (the port of the message queue web interface, usually 8081)
-*   `MQ_USER` (the username for the message queue)
-*   `MQ_PASSWORD` (the password for the message queue - **Important:** Change this for real use!)
-*   `RABBITMQ_TAG` (usually leave this as `management`)
-*   `MONGODB_TAG` (usually leave this as `latest`)
-*   `MONGO_PORT` (the port for the database, usually 27017)
-*   `MONGO_ROOT_USER` (the database root username)
-*   `MONGO_ROOT_PASSWORD` (the database root password - **Important:** Change this for real use!)
-*   `MONGO_LOCAL_DATA` (where the database files are stored on your computer)
-*   `MOV_DB_NAME` (the name of the database MOV uses)
-*   `MOV_DB_USER_NAME` (the username MOV uses to access the database)
-*   `MOV_DB_USER_PASSWORD` (the password MOV uses to access the database - **Important:** Change this for real use!)
-*   `MOV_TAG` (usually leave this as `latest`)
-*   `MOV_UI_PORT` (the port for the MOV web interface, usually 8080)
-*   `LOG_LEVEL` (how much logging information you see; usually `INFO`)
-
-### If you change database settings:
-
-If you change any of the settings that start with `MONGO_`, you'll need to reset the database:
-
-1.  Find the folder on your computer that `MONGO_LOCAL_DATA` points to (it's usually `~/mongo_data/movDB`).
-2.  Delete that folder.
-3.  Run `COMPOSE_PROFILES=mov docker-compose up -d` again.
-
-### To stop everything:
-
-When you're finished, you can stop all the running parts with this command:
+You can launch the development environment by running this script:
 
 ```bash
-COMPOSE_PROFILES=mov docker-compose up -d
+./startDevelopmentEnvironment.sh
 ```
-  
-## Development
 
-This guide explains how to set up a development environment to work
-on the C2 Treatment Nonmaleficence Valuator code.
+Once the environment starts, you'll find yourself in a bash shell, ready to interact with
+the necessary tools for the component's development in Python. You'll also have access
+to the following integrated tools:
 
-### Prerequisites:
+- **Master of VALAWAI**: The central component managing topology connections between services.
+  Its web interface is accessible at [http://localhost:8081](http://localhost:8081).
+- **RabbitMQ** The message broker for inter-component communication. The management web interface
+  is at [http://localhost:8082](http://localhost:8082), with credentials `mov:password`.
+- **MongoDB**: The database used by the MOV, named `movDB`, with user credentials `mov:password`.
+- **Mongo express**: A web interface for interacting with MongoDB, available at
+  [http://localhost:8084](http://localhost:8084), also with credentials `mov:password`.
 
-* Ensure you have Docker and Docker Compose installed on your system.
+Within this console, you can use the next commands:
 
-### Starting the Development Environment:
+- **run:** Starts the C2 Treatment nonmaleficence valuator component.
+- **testAll:** Runs all unit tests for the codebase.
+- **test test/test_something.py:** Runs the unit tests defined in
+  the file `test_something.py`.
+- **test test/test_something.py::TestClassName::test_do_something:** Runs
+  a specific unit test named `test_do_something` defined within the class `TestClassName`
+  in the file `test_something.py`.
+- **coverage:** Runs all unit tests and generates a coverage report.
+- **fmt:** Runs a static code analyzer to check for formatting and style issues.
 
-1.  **Run the development script:**
+To exit the development environment, simply type `exit` in the bash shell or run the following script:
 
-    ```bash
-    ./startDevelopmentEnvironment.sh
-    ```
+```bash
+./stopDevelopmentEnvironment.sh
+```
 
-    This script starts the development environment using Docker Compose. 
-    It includes various tools and services needed for development.
+In either case, the development environment will gracefully shut down, including all activated services like MOV, RabbitMQ, MongoDB, and Mongo Express.
 
-2.  **Interact with the Python code:**
+## Helpful Links
 
-    Once the script finishes, you'll have a bash shell where you can interact with the Python code.
+Here's a collection of useful links related to this component and the VALAWAI ecosystem:
 
-### Available Commands:
-
-The development environment provides several commands for common actions:
-
-* **run:** Starts the C2 Treatment Nonmaleficence Valuator component.
-* **testAll:** Runs all unit tests for the codebase.
-* **test test/test_something.py:** Runs the unit tests defined in
- the file `test_something.py`.
-* **test test/test_something.py::TestClassName::test_do_something:** Runs 
-a specific unit test named `test_do_something` defined within the class `TestClassName` 
-in the file `test_something.py`.
-* **coverage:** Runs all unit tests and generates a coverage report.
-* **fmt:** Runs a static code analyzer to check for formatting and style issues.
-
-### Development Tools and Services:
-
-The development environment also starts several tools and services:
-
-* **RabbitMQ:** A message broker server used for communication between
- components. You can access its management UI at 
- [http://localhost:8081](http://localhost:8081) with credentials `mov:password` 
- (**Caution:** Avoid these default credentials in production environments).
-* **MongoDB:** A NoSQL database used by the MOV component. The database is
- named `movDB`, and the credentials are `mov:password` (**Caution:** Avoid these 
- default credentials in production environments). You can access its management UI
-  (MongoDB) at [http://localhost:8081](http://localhost:8081) with the same credentials.
-* **Mongo express:** A web UI for interacting with the MongoDB database. You can access
- it at [http://localhost:8082](http://localhost:8082).
-* **Master Of VALAWAI (MOV):** The web UI for interacting with the MOV component. 
-You can access it at [http://localhost:8083](http://localhost:8083).
-
-### Important:
-
-The credentials `mov:password` used for RabbitMQ, MongoDB, and MOV should
-be changed for secure deployments in production environments.
-
-
-## Links
-
- - [C2 Treatment nonmaleficence valuator documentation](https://valawai.github.io/docs/components/C2/treatment_nonmaleficence_valuator)
- - [Master Of VALAWAI tutorial](https://valawai.github.io/docs/tutorials/mov)
- - [VALWAI documentation](https://valawai.github.io/docs/)
- - [VALAWAI project web site](https://valawai.eu/)
- - [Twitter](https://twitter.com/ValawaiEU)
- - [GitHub](https://github.com/VALAWAI)
- 
+- **C2 Treatment nonmaleficence valuator Documentation**: [https://valawai.github.io/docs/components/C2/treatment_nonmaleficence_valuator](https://valawai.github.io/docs/components/C2/treatment_nonmaleficence_valuator)
+- **Master Of VALAWAI (MOV)**: [https://valawai.github.io/docs/architecture/implementations/mov/](https://valawai.github.io/docs/architecture/implementations/mov/)
+- **VALAWAI Main Documentation**: [https://valawai.github.io/docs/](https://valawai.github.io/docs/)
+- **VALAWAI on GitHub**: [https://github.com/VALAWAI](https://github.com/VALAWAI)
+- **VALAWAI Official Website**: [https://valawai.eu/](https://valawai.eu/)
+- **VALAWAI on X (formerly Twitter)**: [https://x.com/ValawaiEU](https://x.com/ValawaiEU)

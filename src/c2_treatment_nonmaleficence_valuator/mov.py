@@ -10,196 +10,205 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program. 	If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-import json
-import logging
-import os.path
-import re
 
 from message_service import MessageService
 
 
+from pydantic import BaseModel
+import json
+import logging
+import os.path
+from typing import Any, Optional, Dict
+
+from c2_treatment_nonmaleficence_valuator.message_service import MessageService
+from c2_treatment_nonmaleficence_valuator import __version__
+
+
 class MOV:
-	"""The component used to interatc with the Master Of VALAWAI (MOV)"""
+    """The component used to interact with the Master Of VALAWAI (MOV)"""
 
-	def __init__(self, message_service:MessageService):
-		"""Initialize the connection to the MOV
+    def __init__(self, message_service: MessageService):
+        """Initialize the connection to the MOV
 
-		Parameters
-		----------
-		message_service: MessageService
-			The service to receive or send messages thought RabbitMQ
-		"""
-		self.message_service = message_service
-		self.component_id = None
-		self.message_service.listen_for('valawai/c2/treatment_nonmaleficence_valuator/control/registered', self.registered_component)
+        Parameters
+        ----------
+        message_service: MessageService
+            The service to receive or send messages through RabbitMQ
+        """
+        self.message_service = message_service
+        self.component_id: Optional[str] = None
+        self.message_service.listen_for(
+            'valawai/c2/treatment_nonmaleficence_valuator/control/registered',
+            self.registered_component
+        )
 
-	def __read_file(self, path:str):
-		"""Read a file and return its content."""
+    def __read_file(self, path: str) -> str:
+        """Read a file and return its content."""
 
-		class_file_path = os.path.abspath(os.path.dirname(__file__))
-		file_path = os.path.join(class_file_path, path)
-		with open(file_path) as file:
-			return file.read()
+        class_file_path = os.path.abspath(os.path.dirname(__file__))
+        file_path = os.path.join(class_file_path, path)
+        with open(file_path) as file:
+            return file.read()
 
-	def register_component_msg(self):
-		""" The message to register this component into the MOV
-			(https://valawai.github.io/docs/tutorials/mov#register-a-component)
-		"""
+    def register_component_msg(self) -> Dict[str, Any]:
+        """The message to register this component into the MOV
+        (https://valawai.github.io/docs/tutorials/mov#register-a-component)
+        """
+        async_api = self.__read_file('../../asyncapi.yaml')
 
-		setup = self.__read_file('../../pyproject.toml')
-		version = re.findall(r"version\s*=\s*\"(\d+\.\d+\.\d+)\"", setup)[0]
-		async_api = self.__read_file('../../asyncapi.yaml')
+        return {
+            "type": "C2",
+            "name": "c2_treatment_nonmaleficence_valuator",
+            "version": __version__,
+            "asyncapi_yaml": async_api
+        }
 
-		return {
-					"type": "C2",
-					"name": "c2_treatment_nonmaleficence_valuator",
-					"version": version,
-					"asyncapi_yaml":async_api
-				}
+    def register_component(self) -> None:
+        """Register this component into the MOV
+        (https://valawai.github.io/docs/tutorials/mov#register-a-component)
+        """
+        msg = self.register_component_msg()
+        self.message_service.publish_to('valawai/component/register', msg)
 
-	def register_component(self):
-		""" Register this component into the MOV
-			(https://valawai.github.io/docs/tutorials/mov#register-a-component)
-		"""
+    def registered_component(self, _ch, _method, _properties, body: bytes) -> None:
+        """Called when the component has been registered."""
 
-		msg = self.register_component_msg()
-		self.message_service.publish_to('valawai/component/register', msg)
+        logging.debug("Received registered component %s", body)
+        msg = json.loads(body)
+        self.component_id = msg['id']
+        logging.info("Registered C2 Treatment nonmaleficence valuator with the identifier '%s'", self.component_id)
 
-	def registered_component(self, _ch, _method, _properties, body):
-		"""Called when the component has been registered."""
+        try:
+            log_dir = os.getenv("LOG_DIR", "logs")
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir)
 
-		logging.debug("Received registered component %s", body)
-		msg = json.loads(body)
-		self.component_id = msg['id']
-		logging.info("Register C2 Treatment nonmaleficence valuator with the identifier '%s'",self.component_id)
+            component_id_path = os.path.join(log_dir, os.getenv("COMPONET_ID_FILE_NAME", "component_id.json"))
+            with open(component_id_path, "w") as component_id_file:
+                content = json.dumps(msg, sort_keys=True, indent=2)
+                component_id_file.write(content)
 
-		try:
+        except (OSError, ValueError):
+            logging.exception("Could not store the component id into a file")
 
-			log_dir = os.getenv("LOG_DIR", "logs")
-			if not os.path.exists(log_dir):
+    def unregister_component(self) -> None:
+        """Unregister this component from the MOV
+        (https://valawai.github.io/docs/tutorials/mov/#unregister-a-component)
+        """
+        try:
+            log_dir = os.getenv("LOG_DIR", "logs")
+            if os.path.exists(log_dir):
+                component_id_path = os.path.join(log_dir, os.getenv("COMPONET_ID_FILE_NAME", "component_id.json"))
+                if os.path.isfile(component_id_path):
+                    os.remove(component_id_path)
 
-				os.makedirs(log_dir)
+        except (OSError, ValueError):
+            logging.exception("Could not remove previous component id file")
 
-			component_id_path = os.path.join(log_dir, os.getenv("COMPONET_ID_FILE_NAME", "component_id.json"))
-			with open(component_id_path, "w") as component_id_file:
+        if self.component_id is not None:
+            msg = {"component_id": self.component_id}
+            self.message_service.publish_to('valawai/component/unregister', msg)
+            logging.info("Unregistered C2 Treatment nonmaleficence valuator with the identifier '%s'", self.component_id)
+            self.component_id = None
 
-				content = json.dumps(msg, sort_keys=True, indent=2)
-				component_id_file.write(content)
+    def debug(self, msg: str, payload: Any = None) -> None:
+        """ Send a debug log message to the MOV
+            (https://valawai.github.io/docs/tutorials/mov/#add-a-log-message)
 
-		except (OSError, ValueError):
+        Parameters
+        ----------
+        msg : str
+            The log message
+        payload: object
+            The payload associated to the log message.
+        """
+        self.__log('DEBUG', msg, payload)
+        logging.debug(msg)
 
-			logging.exception("Could not store the component id into a file")
+    def info(self, msg: str, payload: Any = None) -> None:
+        """ Send a info log message to the MOV
+            (https://valawai.github.io/docs/tutorials/mov/#add-a-log-message)
 
-	def unregister_component(self):
-		""" Unregister this component from the MOV
-			(https://valawai.github.io/docs/tutorials/mov/#unregister-a-component)
-		"""
-		try:
+        Parameters
+        ----------
+        msg : str
+            The log message
+        payload: object
+            The payload associated to the log message.
+        """
+        self.__log('INFO', msg, payload)
+        logging.info(msg)
 
-			log_dir = os.getenv("LOG_DIR", "logs")
-			if os.path.exists(log_dir):
+    def warn(self, msg: str, payload: Any = None) -> None:
+        """ Send a warn log message to the MOV
+            (https://valawai.github.io/docs/tutorials/mov/#add-a-log-message)
 
-				component_id_path = os.path.join(log_dir, os.getenv("COMPONET_ID_FILE_NAME", "component_id.json"))
-				if os.path.isfile(component_id_path):
+        Parameters
+        ----------
+        msg : str
+            The log message
+        payload: object
+            The payload associated to the log message.
+        """
+        self.__log('WARN', msg, payload)
+        logging.warning(msg)
 
-					os.remove(component_id_path)
+    def error(self, msg: str, payload: Any = None) -> None:
+        """ Send a error log message to the MOV
+            (https://valawai.github.io/docs/tutorials/mov/#add-a-log-message)
 
-		except (OSError, ValueError):
+        Parameters
+        ----------
+        msg : str
+            The log message
+        payload: object
+            The payload associated to the log message.
+        """
+        self.__log('ERROR', msg, payload)
+        logging.error(msg)
 
-			logging.exception("Could not remove previous component id file")
+    def __log(self, level: str, msg: str, payload: Any = None) -> None:
+        """ Send a log message to the MOV
+            (https://valawai.github.io/docs/tutorials/mov/#add-a-log-message)
 
-		if self.component_id is not None:
+        Parameters
+        ----------
+        level : str
+            The log level (DEBUG, INFO, WARN, ERROR)
+        msg : str
+            The log message
+        payload: object, optional
+            The payload associated with the log message.
+        """
 
-				msg = {"component_id":self.component_id}
-				self.message_service.publish_to('valawai/component/unregister', msg)
-				logging.info("Unregisterd C2 Treatment nonmaleficence valuator with the identifier '%s'",self.component_id)
-				self.component_id = None
+        # MOV treats {…} as template placeholders, so we strip braces from the message
+        # to prevent accidental placeholder expansion or errors on the MOV side.
+        safe_msg = msg.replace("{", "[").replace("}", "]")
+        add_log_payload = {"level": level, "message": safe_msg}
 
-	def debug(self, msg:str, payload=None):
-		""" Send a debug log message to the MOV
-			(https://valawai.github.io/docs/tutorials/mov/#add-a-log-message)
+        if payload is not None:
+            if isinstance(payload, BaseModel):
+                add_log_payload["payload"] = payload.model_dump_json()
+            elif isinstance(payload, (dict, list)):
+                add_log_payload["payload"] = json.dumps(payload)
+            elif isinstance(payload, bytes):
+                add_log_payload["payload"] = payload.decode('utf-8', errors='replace')
+            elif isinstance(payload, str):
+                add_log_payload["payload"] = payload
+            else:
+                try:
+                    add_log_payload["payload"] = json.dumps(payload)
+                except (TypeError, ValueError):
+                    logging.debug("Could not serialize payload to JSON; falling back to str()")
+                    add_log_payload["payload"] = str(payload)
 
-		Parameters
-		----------
-		msg : str
-			The log message
-		payload: object
-			The payload associated to the log message.
-		"""
-		self.__log('DEBUG', msg, payload)
-		logging.debug(msg)
+        if self.component_id is not None:
+            add_log_payload["component_id"] = self.component_id
 
-	def info(self, msg:str, payload=None):
-		""" Send a info log message to the MOV
-			(https://valawai.github.io/docs/tutorials/mov/#add-a-log-message)
-
-		Parameters
-		----------
-		msg : str
-			The log message
-		payload: object
-			The payload associated to the log message.
-		"""
-		self.__log('INFO', msg, payload)
-		logging.info(msg)
-
-	def warn(self, msg:str, payload=None):
-		""" Send a warn log message to the MOV
-			(https://valawai.github.io/docs/tutorials/mov/#add-a-log-message)
-
-		Parameters
-		----------
-		msg : str
-			The log message
-		payload: object
-			The payload associated to the log message.
-		"""
-		self.__log('WARN', msg, payload)
-		logging.warning(msg)
-
-	def error(self, msg:str, payload=None):
-		""" Send a error log message to the MOV
-			(https://valawai.github.io/docs/tutorials/mov/#add-a-log-message)
-
-		Parameters
-		----------
-		msg : str
-			The log message
-		payload: object
-			The payload associated to the log message.
-		"""
-		self.__log('ERROR', msg, payload)
-		logging.error(msg)
-
-	def __log(self, level:str, msg:str, payload=None):
-		""" Send a log message to the MOV
-			(https://valawai.github.io/docs/tutorials/mov/#add-a-log-message)
-
-		Parameters
-		----------
-		level : str
-			The log level
-		msg : str
-			The log message
-		payload: object
-			The payload associated to the log message.
-		"""
-
-		msg = msg.replace("{"," ")
-		add_log_payload = {"level":level, "message": msg}
-
-		if payload is not None:
-
-			add_log_payload["payload"] = json.dumps(payload)
-
-		if self.component_id is not None:
-
-			add_log_payload["component_id"] = self.component_id
-
-		self.message_service.publish_to('valawai/log/add', add_log_payload)
+        self.message_service.publish_to('valawai/log/add', add_log_payload)
